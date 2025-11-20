@@ -4,22 +4,27 @@ import com.payment.app.application.dto.PaymentRequest;
 import com.payment.app.application.dto.PaymentResponse;
 import com.payment.app.application.mapper.PaymentApplicationMapper;
 import com.payment.app.application.port.in.CreatePaymentUseCase;
-import com.payment.app.application.port.out.PaymentRepository;
+import com.payment.app.application.port.out.EncryptionStringPort;
+import com.payment.app.application.port.out.PaymentRepositoryPort;
 import com.payment.app.domain.model.Payment;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-
 @Service
 public class CreatePaymentUseCaseImpl implements CreatePaymentUseCase {
 
-    private final PaymentRepository repository;
+    private final PaymentRepositoryPort repository;
     private final PaymentApplicationMapper mapper;
+    private final EncryptionStringPort encryptionString;
 
-    public CreatePaymentUseCaseImpl(PaymentRepository repository, PaymentApplicationMapper mapper) {
+    public CreatePaymentUseCaseImpl(
+            PaymentRepositoryPort repository,
+            PaymentApplicationMapper mapper,
+            EncryptionStringPort encryptionString
+    ) {
         this.mapper = mapper;
         this.repository = repository;
+        this.encryptionString = encryptionString;
     }
 
 
@@ -33,7 +38,7 @@ public class CreatePaymentUseCaseImpl implements CreatePaymentUseCase {
                 payment.toBuilder()
                         .status("CREATED")
                         .idempotencyKey(idempotencyKey)
-                        .encryptedCardNumber("123")
+                        .encryptedCardNumber(encryptCardNumber(payment.encryptedCardNumber()))
                         .build()
         );
 
@@ -42,6 +47,6 @@ public class CreatePaymentUseCaseImpl implements CreatePaymentUseCase {
     }
 
     private String encryptCardNumber(String cardNumber) {
-        return "*****1234";
+       return encryptionString.encrypt(cardNumber);
     }
 }
