@@ -13,10 +13,7 @@ public interface PaymentApplicationMapper {
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "idempotencyKey", ignore = true)
     @Mapping(target = "encryptedCardNumber", ignore = true)
-    @Mapping(target = "withIdempotencyKey", ignore = true)
-    @Mapping(target = "withEncryptedCardNumber", ignore = true)
     @Mapping(target = "status", ignore = true)
-    @Mapping(target = "withStatus", ignore = true)
     Payment toDomain(PaymentRequest paymentApplication);
 
     PaymentResponse toResponse(Payment payment);

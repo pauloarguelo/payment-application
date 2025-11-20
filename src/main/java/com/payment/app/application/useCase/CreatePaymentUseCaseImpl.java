@@ -29,12 +29,13 @@ public class CreatePaymentUseCaseImpl implements CreatePaymentUseCase {
 
         Payment payment = mapper.toDomain(paymentRequest);
 
-        payment = payment.withIdempotencyKey(idempotencyKey);
-        String encryptedCardNumber = encryptCardNumber(paymentRequest.cardNumber());
-        payment = payment.withEncryptedCardNumber(encryptedCardNumber);
-        payment = payment.withStatus("CREATED");
-
-        Payment response = repository.save(payment);
+        Payment response = repository.save(
+                payment.toBuilder()
+                        .status("CREATED")
+                        .idempotencyKey(idempotencyKey)
+                        .encryptedCardNumber("123")
+                        .build()
+        );
 
         return mapper.toResponse(response);
 
