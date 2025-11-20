@@ -1,5 +1,5 @@
 CREATE TABLE payments (
-    id VARCHAR(36) NOT NULL,
+    id CHAR(36) NOT NULL DEFAULT (UUID()),
     first_name VARCHAR(100) NOT NULL,
     last_name VARCHAR(100) NOT NULL,
     encrypted_card_number VARCHAR(255) NOT NULL,

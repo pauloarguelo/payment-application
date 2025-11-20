@@ -2,40 +2,45 @@ package com.payment.app.application.useCase;
 
 import com.payment.app.application.dto.PaymentRequest;
 import com.payment.app.application.dto.PaymentResponse;
+import com.payment.app.application.mapper.PaymentApplicationMapper;
 import com.payment.app.application.port.in.CreatePaymentUseCase;
 import com.payment.app.application.port.out.PaymentRepository;
 import com.payment.app.domain.model.Payment;
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+
 import java.time.LocalDateTime;
 
 @Service
 public class CreatePaymentUseCaseImpl implements CreatePaymentUseCase {
 
     private final PaymentRepository repository;
+    private final PaymentApplicationMapper mapper;
 
-    public CreatePaymentUseCaseImpl(PaymentRepository repository) {
+    public CreatePaymentUseCaseImpl(PaymentRepository repository, PaymentApplicationMapper mapper) {
+        this.mapper = mapper;
         this.repository = repository;
     }
 
 
     @Override
-    public PaymentResponse createPayment(PaymentRequest payment, String idempotencyKey) {
+    @Transactional
+    public PaymentResponse createPayment(PaymentRequest paymentRequest, String idempotencyKey) {
 
-        Payment newPayment = new Payment(
-                java.util.UUID.randomUUID(),
-                payment.firstName(),
-                payment.lastName(),
-                payment.zipCode(),
-                payment.cardNumber()
-        );
-        Payment response = repository.save(newPayment);
+        Payment payment = mapper.toDomain(paymentRequest);
 
-       return new PaymentResponse(
-               response.paymentId(),
-               response.firstName(),
-               response.lastName(),
-               LocalDateTime.now()
-       );
+        payment = payment.withIdempotencyKey(idempotencyKey);
+        String encryptedCardNumber = encryptCardNumber(paymentRequest.cardNumber());
+        payment = payment.withEncryptedCardNumber(encryptedCardNumber);
+        payment = payment.withStatus("CREATED");
 
+        Payment response = repository.save(payment);
+
+        return mapper.toResponse(response);
+
+    }
+
+    private String encryptCardNumber(String cardNumber) {
+        return "*****1234";
     }
 }

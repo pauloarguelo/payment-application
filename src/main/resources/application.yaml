@@ -15,6 +15,9 @@ spring:
     properties:
         hibernate:
             dialect: org.hibernate.dialect.MySQLDialect
+            id.db_structure_naming_strategy: legacy
+            type_descriptor_sql_type_code: 12
+            jdbc.time_zone: UTC
 
   flyway:
     enabled: true
