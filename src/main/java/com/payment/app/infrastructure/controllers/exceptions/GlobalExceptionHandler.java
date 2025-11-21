@@ -45,7 +45,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(IdempotencyViolationException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.CONFLICT)
     public ErrorResponse handleGenericError(IdempotencyViolationException ex) {
         return new ErrorResponse(
                 "IDEMPOTENCY_ERROR",

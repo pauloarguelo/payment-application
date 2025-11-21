@@ -9,4 +9,7 @@ import org.mapstruct.Mapping;
 public interface PaymentPersistenceMapper {
     @Mapping(target = "id", ignore = true)
     PaymentEntity toEntity(Payment payment);
+
+    @Mapping(target = "paymentId", source = "id")
+    Payment toDomain(PaymentEntity entity);
 }

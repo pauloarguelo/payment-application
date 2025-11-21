@@ -23,33 +23,14 @@ public class PaymentRepositoryPortImpl implements PaymentRepositoryPort {
 
         PaymentEntity entity = mapper.toEntity(payment);
         PaymentEntity savedEntity = jpaRepository.saveAndFlush(entity);
-
-        return new Payment(
-                savedEntity.getId(),
-                savedEntity.getFirstName(),
-                savedEntity.getLastName(),
-                savedEntity.getZipCode(),
-                savedEntity.getEncryptedCardNumber(),
-                savedEntity.getIdempotencyKey(),
-                savedEntity.getStatus(),
-                savedEntity.getCreatedAt()
-        );
+        return mapper.toDomain(savedEntity);
 
     }
 
     @Override
     public Payment findByIdempotencyKey(String idempotencyKey) {
         return jpaRepository.findByIdempotencyKey(idempotencyKey)
-                .map(entity -> new Payment(
-                        entity.getId(),
-                        entity.getFirstName(),
-                        entity.getLastName(),
-                        entity.getZipCode(),
-                        entity.getEncryptedCardNumber(),
-                        entity.getIdempotencyKey(),
-                        entity.getStatus(),
-                        entity.getCreatedAt()
-                ))
+                .map(mapper::toDomain)
                 .orElse(null);
     }
 }
