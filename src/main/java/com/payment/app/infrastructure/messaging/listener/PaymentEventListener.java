@@ -31,11 +31,10 @@ public class PaymentEventListener {
             PaymentCreateEvent event = objectMapper.readValue(eventPayload, PaymentCreateEvent.class);
             this.webhookDeliveryUseCase.sendPaymentAndWebhooksToProcess(event);
         }catch (Exception e) {
-            //  (retry, dead letter queue, etc)
+            logger.warn("PaymentEventListener: Failed to process event payload: {}", eventPayload, e);
             throw new RuntimeException(e);
         }
 
     }
-
 
 }
