@@ -1,11 +1,12 @@
 package com.payment.app.application.useCase;
 
+import com.payment.app.application.dto.PaymentCreateEvent;
 import com.payment.app.application.dto.PaymentRequest;
 import com.payment.app.application.dto.PaymentResponse;
 import com.payment.app.application.mapper.PaymentApplicationMapper;
 import com.payment.app.application.port.in.CreatePaymentUseCase;
 import com.payment.app.application.port.out.CreditCardEncryptionPort;
-import com.payment.app.application.port.out.EventPublisherPort;
+import com.payment.app.application.port.out.PaymentEventPublisherPort;
 import com.payment.app.application.port.out.PaymentRepositoryPort;
 import com.payment.app.domain.exceptions.IdempotencyViolationException;
 import com.payment.app.domain.model.Payment;
@@ -19,13 +20,13 @@ public class CreatePaymentUseCaseImpl implements CreatePaymentUseCase {
     private final PaymentRepositoryPort repository;
     private final PaymentApplicationMapper mapper;
     private final CreditCardEncryptionPort creditCardEncryption;
-    private final EventPublisherPort eventPublisher;
+    private final PaymentEventPublisherPort eventPublisher;
 
     public CreatePaymentUseCaseImpl(
             PaymentRepositoryPort repository,
             PaymentApplicationMapper mapper,
             CreditCardEncryptionPort creditCardEncryption,
-            EventPublisherPort eventPublisher
+            PaymentEventPublisherPort eventPublisher
     ) {
         this.mapper = mapper;
         this.repository = repository;
@@ -54,7 +55,12 @@ public class CreatePaymentUseCaseImpl implements CreatePaymentUseCase {
                         .build()
         );
 
-        eventPublisher.publishPaymentCreatedEvent("{ \"paymentId\": \"" + payment.firstName() + "\" }");
+        PaymentCreateEvent paymentCreateEvent = new PaymentCreateEvent(
+                response.paymentId(),
+                response.status()
+        );
+
+        eventPublisher.publishPaymentCreatedEvent(paymentCreateEvent);
 
         return mapper.toResponse(response);
 

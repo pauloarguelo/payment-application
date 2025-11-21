@@ -4,11 +4,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payment.app.application.dto.PaymentRequest;
 import com.payment.app.application.dto.PaymentResponse;
 import com.payment.app.application.port.in.CreatePaymentUseCase;
+import com.payment.app.domain.type.PaymentStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
@@ -46,7 +45,7 @@ class PaymentControllerTest {
     @Test
     @DisplayName("Should successfully create payment with valid request")
     void testCreatePaymentSuccess() throws Exception {
-        // Arrange
+
         PaymentRequest paymentRequest = new PaymentRequest(
                 "John",
                 "Doe",
@@ -60,6 +59,7 @@ class PaymentControllerTest {
                 paymentId,
                 "John",
                 "Doe",
+                PaymentStatus.CREATED,
                 createdAt
         );
 
@@ -68,7 +68,6 @@ class PaymentControllerTest {
         when(createPaymentUseCase.createPayment(any(PaymentRequest.class), eq(idempotencyKey)))
                 .thenReturn(expectedResponse);
 
-        // Act & Assert
         mockMvc.perform(post("/api/v1/payments")
                 .header("Idempotency-Key", idempotencyKey)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -82,7 +81,7 @@ class PaymentControllerTest {
     @Test
     @DisplayName("Should return 200 OK with correct response structure")
     void testCreatePaymentResponseStructure() throws Exception {
-        // Arrange
+
         PaymentRequest paymentRequest = new PaymentRequest(
                 "Jane",
                 "Smith",
@@ -96,6 +95,7 @@ class PaymentControllerTest {
                 paymentId,
                 "Jane",
                 "Smith",
+                PaymentStatus.CREATED,
                 createdAt
         );
 
@@ -104,7 +104,6 @@ class PaymentControllerTest {
         when(createPaymentUseCase.createPayment(any(PaymentRequest.class), eq(idempotencyKey)))
                 .thenReturn(expectedResponse);
 
-        // Act & Assert
         mockMvc.perform(post("/api/v1/payments")
                 .header("Idempotency-Key", idempotencyKey)
                 .contentType(MediaType.APPLICATION_JSON)
