@@ -1,6 +1,9 @@
 package com.payment.app.application.useCase;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payment.app.application.dto.PaymentWebhookProcessEvent;
+import com.payment.app.application.dto.WebhookPayloadDto;
 import com.payment.app.application.dto.WebhookResponse;
 import com.payment.app.application.port.in.ProcessWebhookDeliveryUseCase;
 import com.payment.app.application.port.out.WebhookClientPort;
@@ -14,7 +17,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -24,71 +26,128 @@ public class ProcessWebhookDeliveryUseCaseImpl implements ProcessWebhookDelivery
     private final WebhookDeliveryLogRepositoryPort webhookDeliveryLogRepository;
     private final WebhookClientPort webhookClient;
     private static final Logger logger = LoggerFactory.getLogger(ProcessWebhookDeliveryUseCaseImpl.class);
+    private final ObjectMapper objectMapper;
 
     public ProcessWebhookDeliveryUseCaseImpl(
             WebhookRepositoryPort webhookRepository,
             WebhookDeliveryLogRepositoryPort webhookDeliveryLogRepository,
-            WebhookClientPort webhookClient
+            WebhookClientPort webhookClient,
+            ObjectMapper objectMapper
     ) {
         this.webhookRepository = webhookRepository;
         this.webhookDeliveryLogRepository = webhookDeliveryLogRepository;
         this.webhookClient = webhookClient;
+        this.objectMapper = objectMapper;
     }
 
     @Override
     @Transactional
     public void processDelivery(PaymentWebhookProcessEvent event) {
-        logger.info("ProcessWebhookDeliveryUseCaseImpl: Processing webhook delivery for event: {}", event);
+        logger.info("ProcessWebhookDeliveryUseCaseImpl: Processing webhook delivery - PaymentId: {}, WebhookId: {}",
+                event.paymentId(), event.webhookId());
 
         UUID paymentId = event.paymentId();
         UUID webhookId = event.webhookId();
 
-        Webhook webhook = webhookRepository.findById(webhookId);
+        Webhook webhook = findWebhookOrThrow(webhookId);
+        WebhookDeliveryLog deliveryLog = findDeliveryLog(paymentId, webhookId);
 
-        if(webhook == null) {
-            throw new RuntimeException("Webhook not found with id: " + webhookId);
-        }
-
-        WebhookDeliveryLog log = this.webhookDeliveryLogRepository.findByPaymentIdAndWebhookId(
-                paymentId,
-                webhookId
-        );
-
-        if(log != null && Objects.equals(log.status(), "SUCCESS")) {
-            logger.info("Delivery log already exists for paymentId: {} and webhookId: {}. Skipping delivery.",
-                    paymentId, webhookId);
+        if (isAlreadyDeliveredSuccessfully(deliveryLog)) {
+            logger.info("ProcessWebhookDeliveryUseCaseImpl: Webhook already delivered successfully. Skipping.");
             return;
         }
 
         try {
+            ensureDeliveryLogExists(deliveryLog, paymentId, webhookId);
+            incrementAttemptCounter(paymentId, webhookId);
 
-            if (log == null) {
-                this.webhookDeliveryLogRepository.saveLogAsPending(paymentId, webhookId);
-            }
-
-            this.webhookDeliveryLogRepository.incrementAttemptCount(paymentId, webhookId);
-
-            String payloadJson = "{\"paymentId\": \"" + paymentId + "\", \"event\": \"PAYMENT_CREATED\"}";
-
+            String payloadJson = buildPayloadJson(paymentId);
             WebhookResponse response = webhookClient.postEvent(webhook.endpointUrl(), payloadJson);
 
-            if (response.isSuccess()) {
-                webhookDeliveryLogRepository.updateStatusSuccess(paymentId, webhookId, response.statusCode());
-                logger.info("Webhook delivered successfully to {}", webhook.endpointUrl());
-            } else if (response.isPermanentError()) {
-                webhookDeliveryLogRepository.updateStatusFailed(paymentId, webhookId, response.statusCode());
-                logger.warn("Permanent failure delivering webhook ({}). Marking as FAILED.", response.statusCode());
-            } else {
-                throw new RuntimeException("Transient error " + response.statusCode() + " from webhook endpoint");
-            }
+            handleWebhookResponse(response, paymentId, webhookId, webhook.endpointUrl());
 
-        }catch (Exception e) {
-
-            logger.error("Error processing webhook delivery for paymentId: {} and webhookId: {}. Error: {}",
-                    paymentId, webhookId, e.getMessage());
-
-            throw new RuntimeException("Connection failure", e);
+        } catch (Exception e) {
+            handleDeliveryError(e, paymentId, webhookId);
         }
+    }
 
+    private Webhook findWebhookOrThrow(UUID webhookId) {
+        Webhook webhook = webhookRepository.findById(webhookId);
+        if (webhook == null) {
+            throw new RuntimeException("ProcessWebhookDeliveryUseCaseImpl: Webhook not found with id: " + webhookId);
+        }
+        return webhook;
+    }
+
+    private WebhookDeliveryLog findDeliveryLog(UUID paymentId, UUID webhookId) {
+        return webhookDeliveryLogRepository.findByPaymentIdAndWebhookId(paymentId, webhookId);
+    }
+
+    private boolean isAlreadyDeliveredSuccessfully(WebhookDeliveryLog deliveryLog) {
+        return deliveryLog != null && "SUCCESS".equals(deliveryLog.status());
+    }
+
+    private void ensureDeliveryLogExists(WebhookDeliveryLog deliveryLog, UUID paymentId, UUID webhookId) {
+        if (deliveryLog == null) {
+            webhookDeliveryLogRepository.saveLogAsPending(paymentId, webhookId);
+            logger.debug("ProcessWebhookDeliveryUseCaseImpl: Created new delivery log entry");
+        }
+    }
+
+    private void incrementAttemptCounter(UUID paymentId, UUID webhookId) {
+        webhookDeliveryLogRepository.incrementAttemptCount(paymentId, webhookId);
+        logger.debug("Incremented attempt counter");
+    }
+
+    private String buildPayloadJson(UUID paymentId) {
+        try {
+            WebhookPayloadDto payload = new WebhookPayloadDto(paymentId, "PAYMENT_COMPLETED");
+            return objectMapper.writeValueAsString(payload);
+        } catch (JsonProcessingException e) {
+            logger.error("ProcessWebhookDeliveryUseCaseImpl: Failed to serialize webhook payload: {}", e.getMessage());
+            throw new RuntimeException("Failed to build webhook payload", e);
+        }
+    }
+
+    private void handleWebhookResponse(WebhookResponse response, UUID paymentId, UUID webhookId, String endpointUrl) {
+        if (response.isSuccess()) {
+            handleSuccess(response, paymentId, webhookId, endpointUrl);
+        } else if (response.isPermanentError()) {
+            handlePermanentError(response, paymentId, webhookId);
+        } else {
+            handleTransientError(response);
+        }
+    }
+
+    private void handleSuccess(WebhookResponse response, UUID paymentId, UUID webhookId, String endpointUrl) {
+        webhookDeliveryLogRepository.updateStatusSuccess(paymentId, webhookId, response.statusCode());
+        logger.info(
+                "ProcessWebhookDeliveryUseCaseImpl: Webhook delivered successfully to {} - HTTP {}",
+                endpointUrl,
+                response.statusCode()
+        );
+    }
+
+    private void handlePermanentError(WebhookResponse response, UUID paymentId, UUID webhookId) {
+        webhookDeliveryLogRepository.updateStatusFailed(paymentId, webhookId, response.statusCode());
+        logger.warn(
+                "ProcessWebhookDeliveryUseCaseImpl Permanent error (HTTP {}). Marked as FAILED without retry.",
+                response.statusCode()
+        );
+    }
+
+    private void handleTransientError(WebhookResponse response) {
+        logger.error("ProcessWebhookDeliveryUseCaseImpl: Transient error (HTTP {}). Will retry.", response.statusCode());
+        throw new RuntimeException("Transient error " + response.statusCode() + " from webhook endpoint");
+    }
+
+    private void handleDeliveryError(Exception e, UUID paymentId, UUID webhookId) {
+        logger.error(
+                "ProcessWebhookDeliveryUseCaseImpl: Error processing webhook delivery - PaymentId: {}, WebhookId: {}. Error: {}",
+                paymentId,
+                webhookId,
+                e.getMessage()
+        );
+        throw new RuntimeException("Connection failure", e);
     }
 }
