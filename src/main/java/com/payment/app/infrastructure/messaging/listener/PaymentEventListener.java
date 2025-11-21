@@ -1,7 +1,7 @@
 package com.payment.app.infrastructure.messaging.listener;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.payment.app.application.dto.PaymentCreateEvent;
+import com.payment.app.application.dto.CreatePaymentEvent;
 import com.payment.app.application.port.in.WebhookDeliveryUseCase;
 import com.payment.app.infrastructure.config.RabbitMQConfig;
 import org.slf4j.Logger;
@@ -28,7 +28,7 @@ public class PaymentEventListener {
         logger.info("PaymentEventListener: Received event payload: {}", eventPayload);
 
         try {
-            PaymentCreateEvent event = objectMapper.readValue(eventPayload, PaymentCreateEvent.class);
+            CreatePaymentEvent event = objectMapper.readValue(eventPayload, CreatePaymentEvent.class);
             this.webhookDeliveryUseCase.sendPaymentAndWebhooksToProcess(event);
         }catch (Exception e) {
             logger.warn("PaymentEventListener: Failed to process event payload: {}", eventPayload, e);

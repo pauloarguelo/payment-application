@@ -4,7 +4,7 @@ import com.payment.app.domain.type.PaymentStatus;
 
 import java.util.UUID;
 
-public record PaymentCreateEvent(
+public record CreatePaymentEvent(
         UUID paymentId,
         PaymentStatus status
 ) { }

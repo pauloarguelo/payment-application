@@ -1,7 +1,7 @@
 package com.payment.app.application.port.out;
 
-import com.payment.app.application.dto.PaymentCreateEvent;
+import com.payment.app.application.dto.CreatePaymentEvent;
 
 public interface PaymentEventPublisherPort {
-    void publishPaymentCreatedEvent(PaymentCreateEvent event);
+    void publishPaymentCreatedEvent(CreatePaymentEvent event);
 }

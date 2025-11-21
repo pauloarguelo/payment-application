@@ -2,7 +2,7 @@ package com.payment.app.infrastructure.messaging.publisher;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.payment.app.application.dto.PaymentCreateEvent;
+import com.payment.app.application.dto.CreatePaymentEvent;
 import com.payment.app.application.port.out.PaymentEventPublisherPort;
 import com.payment.app.infrastructure.config.RabbitMQConfig;
 import org.springframework.amqp.AmqpException;
@@ -22,7 +22,7 @@ public class PaymentEventPublisherPortImpl implements PaymentEventPublisherPort 
     }
 
     @Override
-    public void publishPaymentCreatedEvent(PaymentCreateEvent event) {
+    public void publishPaymentCreatedEvent(CreatePaymentEvent event) {
         try {
             String jsonEvent = objectMapper.writeValueAsString(event);
             rabbitTemplate.convertAndSend(

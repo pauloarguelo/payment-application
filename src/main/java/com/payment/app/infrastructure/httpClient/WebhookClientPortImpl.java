@@ -1,6 +1,6 @@
 package com.payment.app.infrastructure.httpClient;
 
-import com.payment.app.application.dto.WebhookResponse;
+import com.payment.app.application.dto.WebhookClientResponse;
 import com.payment.app.application.port.out.WebhookClientPort;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +23,7 @@ public class WebhookClientPortImpl implements WebhookClientPort {
     }
 
     @Override
-    public WebhookResponse postEvent(String url, String payloadJson) {
+    public WebhookClientResponse postEvent(String url, String payloadJson) {
         try {
             logger.debug("Attempting POST to {}", url);
 
@@ -34,11 +34,11 @@ public class WebhookClientPortImpl implements WebhookClientPort {
                     .retrieve()
                     .toEntity(String.class);
 
-            return new WebhookResponse(entity.getStatusCode().value(), entity.getBody());
+            return new WebhookClientResponse(entity.getStatusCode().value(), entity.getBody());
 
         } catch (HttpClientErrorException | HttpServerErrorException e) {
             logger.warn("HTTP Error from webhook {}: {} - {}", url, e.getStatusCode(), e.getResponseBodyAsString());
-            return new WebhookResponse(e.getStatusCode().value(), e.getResponseBodyAsString());
+            return new WebhookClientResponse(e.getStatusCode().value(), e.getResponseBodyAsString());
 
         } catch (ResourceAccessException e) {
             logger.error("Network failure calling webhook {}: {}", url, e.getMessage());

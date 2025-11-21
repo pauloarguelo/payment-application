@@ -1,5 +1,6 @@
 package com.payment.app.infrastructure.persistence.entity;
 
+import com.payment.app.domain.type.WebhookDeliveryLogStatus;
 import jakarta.persistence.*;
 import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.type.SqlTypes;
@@ -24,7 +25,7 @@ public class WebhookDeliveryLogEntity {
     private String webhookId;
 
     @Column(name = "status", nullable = false, length = 20)
-    private String status;
+    private WebhookDeliveryLogStatus status;
 
     @Column(name = "attempt_count", nullable = false)
     private Integer attemptCount;
@@ -59,11 +60,11 @@ public class WebhookDeliveryLogEntity {
         this.webhookId = webhook;
     }
 
-    public String getStatus() {
+    public WebhookDeliveryLogStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(WebhookDeliveryLogStatus status) {
         this.status = status;
     }
 

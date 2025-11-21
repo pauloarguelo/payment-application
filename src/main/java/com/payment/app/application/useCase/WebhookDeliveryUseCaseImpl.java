@@ -1,6 +1,6 @@
 package com.payment.app.application.useCase;
 
-import com.payment.app.application.dto.PaymentCreateEvent;
+import com.payment.app.application.dto.CreatePaymentEvent;
 import com.payment.app.application.dto.PaymentWebhookProcessEvent;
 import com.payment.app.application.port.in.WebhookDeliveryUseCase;
 import com.payment.app.application.port.out.PaymentWebhookEventPublisherPort;
@@ -29,7 +29,7 @@ public class WebhookDeliveryUseCaseImpl implements WebhookDeliveryUseCase {
 
 
     @Override
-    public void sendPaymentAndWebhooksToProcess(PaymentCreateEvent event) {
+    public void sendPaymentAndWebhooksToProcess(CreatePaymentEvent event) {
 
         logger.info("WebhookDeliveryUseCaseImpl: Sending payment and webhooks to process for event: {}", event);
 

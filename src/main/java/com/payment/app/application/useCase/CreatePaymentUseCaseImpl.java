@@ -1,6 +1,6 @@
 package com.payment.app.application.useCase;
 
-import com.payment.app.application.dto.PaymentCreateEvent;
+import com.payment.app.application.dto.CreatePaymentEvent;
 import com.payment.app.application.dto.PaymentRequest;
 import com.payment.app.application.dto.PaymentResponse;
 import com.payment.app.application.mapper.PaymentApplicationMapper;
@@ -61,7 +61,7 @@ public class CreatePaymentUseCaseImpl implements CreatePaymentUseCase {
                         .build()
         );
 
-        PaymentCreateEvent paymentCreateEvent = new PaymentCreateEvent(
+        CreatePaymentEvent paymentCreateEvent = new CreatePaymentEvent(
                 response.paymentId(),
                 response.status()
         );

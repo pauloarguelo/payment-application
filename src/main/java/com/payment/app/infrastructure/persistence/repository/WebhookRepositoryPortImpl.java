@@ -32,7 +32,9 @@ public class WebhookRepositoryPortImpl implements WebhookRepositoryPort {
 
     @Override
     public Webhook save(Webhook webhook) {
-        return null;
+        WebhookEntity entity = mapper.toEntity(webhook);
+        WebhookEntity savedEntity = jpaRepository.save(entity);
+        return mapper.toDomain(savedEntity);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.payment.app.infrastructure.persistence.entity;
 
+import com.payment.app.domain.type.PaymentStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -37,9 +38,8 @@ public class PaymentEntity {
     @Column(name = "idempotency_key", nullable = false, unique = true, length = 36)
     private String idempotencyKey;
 
-    // Status (ex: CREATED, APPROVED, FAILED)
     @Column(name = "status", nullable = false, length = 50)
-    private String status;
+    private PaymentStatus status;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     @CreationTimestamp
@@ -94,11 +94,11 @@ public class PaymentEntity {
         this.idempotencyKey = idempotencyKey;
     }
 
-    public String getStatus() {
+    public PaymentStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(PaymentStatus status) {
         this.status = status;
     }
 

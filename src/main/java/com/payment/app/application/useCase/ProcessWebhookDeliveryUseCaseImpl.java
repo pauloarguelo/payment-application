@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payment.app.application.dto.PaymentWebhookProcessEvent;
 import com.payment.app.application.dto.WebhookPayloadDto;
-import com.payment.app.application.dto.WebhookResponse;
+import com.payment.app.application.dto.WebhookClientResponse;
 import com.payment.app.application.port.in.ProcessWebhookDeliveryUseCase;
 import com.payment.app.application.port.out.WebhookClientPort;
 import com.payment.app.application.port.out.WebhookDeliveryLogRepositoryPort;
@@ -62,7 +62,7 @@ public class ProcessWebhookDeliveryUseCaseImpl implements ProcessWebhookDelivery
             incrementAttemptCounter(paymentId, webhookId);
 
             String payloadJson = buildPayloadJson(paymentId);
-            WebhookResponse response = webhookClient.postEvent(webhook.endpointUrl(), payloadJson);
+            WebhookClientResponse response = webhookClient.postEvent(webhook.endpointUrl(), payloadJson);
 
             handleWebhookResponse(response, paymentId, webhookId, webhook.endpointUrl());
 
@@ -109,7 +109,7 @@ public class ProcessWebhookDeliveryUseCaseImpl implements ProcessWebhookDelivery
         }
     }
 
-    private void handleWebhookResponse(WebhookResponse response, UUID paymentId, UUID webhookId, String endpointUrl) {
+    private void handleWebhookResponse(WebhookClientResponse response, UUID paymentId, UUID webhookId, String endpointUrl) {
         if (response.isSuccess()) {
             handleSuccess(response, paymentId, webhookId, endpointUrl);
         } else if (response.isPermanentError()) {
@@ -119,7 +119,7 @@ public class ProcessWebhookDeliveryUseCaseImpl implements ProcessWebhookDelivery
         }
     }
 
-    private void handleSuccess(WebhookResponse response, UUID paymentId, UUID webhookId, String endpointUrl) {
+    private void handleSuccess(WebhookClientResponse response, UUID paymentId, UUID webhookId, String endpointUrl) {
         webhookDeliveryLogRepository.updateStatusSuccess(paymentId, webhookId, response.statusCode());
         logger.info(
                 "ProcessWebhookDeliveryUseCaseImpl: Webhook delivered successfully to {} - HTTP {}",
@@ -128,7 +128,7 @@ public class ProcessWebhookDeliveryUseCaseImpl implements ProcessWebhookDelivery
         );
     }
 
-    private void handlePermanentError(WebhookResponse response, UUID paymentId, UUID webhookId) {
+    private void handlePermanentError(WebhookClientResponse response, UUID paymentId, UUID webhookId) {
         webhookDeliveryLogRepository.updateStatusFailed(paymentId, webhookId, response.statusCode());
         logger.warn(
                 "ProcessWebhookDeliveryUseCaseImpl Permanent error (HTTP {}). Marked as FAILED without retry.",
@@ -136,7 +136,7 @@ public class ProcessWebhookDeliveryUseCaseImpl implements ProcessWebhookDelivery
         );
     }
 
-    private void handleTransientError(WebhookResponse response) {
+    private void handleTransientError(WebhookClientResponse response) {
         logger.error("ProcessWebhookDeliveryUseCaseImpl: Transient error (HTTP {}). Will retry.", response.statusCode());
         throw new RuntimeException("Transient error " + response.statusCode() + " from webhook endpoint");
     }

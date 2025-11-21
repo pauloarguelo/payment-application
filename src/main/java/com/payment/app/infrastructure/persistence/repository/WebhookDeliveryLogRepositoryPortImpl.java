@@ -2,6 +2,7 @@ package com.payment.app.infrastructure.persistence.repository;
 
 import com.payment.app.application.port.out.WebhookDeliveryLogRepositoryPort;
 import com.payment.app.domain.model.WebhookDeliveryLog;
+import com.payment.app.domain.type.WebhookDeliveryLogStatus;
 import com.payment.app.infrastructure.persistence.entity.WebhookDeliveryLogEntity;
 import com.payment.app.infrastructure.persistence.mapper.WebhookDeliveryLogMapper;
 import com.payment.app.infrastructure.persistence.repository.jpa.WebhookDeliveryLogJpaRepository;
@@ -39,7 +40,7 @@ public class WebhookDeliveryLogRepositoryPortImpl implements WebhookDeliveryLogR
         entity.setPaymentId(paymentId.toString());
         entity.setAttemptCount(0);
         entity.setWebhookId(webhookId.toString());
-        entity.setStatus("PENDING");
+        entity.setStatus(WebhookDeliveryLogStatus.PENDING);
 
         WebhookDeliveryLogEntity savedEntity = jpaRepository.saveAndFlush(entity);
         return mapper.toDomain(savedEntity);
@@ -52,7 +53,7 @@ public class WebhookDeliveryLogRepositoryPortImpl implements WebhookDeliveryLogR
                 paymentId.toString(), webhookId.toString()
         ).orElseThrow(() -> new RuntimeException("WebhookDeliveryLog register not found in database"));
 
-        entity.setStatus("SUCCESS");
+        entity.setStatus(WebhookDeliveryLogStatus.SUCCESS);
         entity.setResponseCode(responseCode);
 
         WebhookDeliveryLogEntity savedEntity = jpaRepository.saveAndFlush(entity);
@@ -67,7 +68,7 @@ public class WebhookDeliveryLogRepositoryPortImpl implements WebhookDeliveryLogR
                 paymentId.toString(), webhookId.toString()
         ).orElseThrow(() -> new RuntimeException("WebhookDeliveryLog register not found in database"));
 
-        entity.setStatus("FAILED");
+        entity.setStatus(WebhookDeliveryLogStatus.FAILED);
         entity.setResponseCode(responseCode);
         entity.setLastAttemptAt(java.time.LocalDateTime.now());
 
