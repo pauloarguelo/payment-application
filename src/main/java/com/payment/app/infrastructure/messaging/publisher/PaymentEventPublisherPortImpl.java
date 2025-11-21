@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payment.app.application.dto.PaymentCreateEvent;
 import com.payment.app.application.port.out.PaymentEventPublisherPort;
-import com.payment.app.infrastructure.messaging.config.RabbitMQConfig;
+import com.payment.app.infrastructure.config.RabbitMQConfig;
 import org.springframework.amqp.AmqpException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;

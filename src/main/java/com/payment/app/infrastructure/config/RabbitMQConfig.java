@@ -1,4 +1,4 @@
-package com.payment.app.infrastructure.messaging.config;
+package com.payment.app.infrastructure.config;
 
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;

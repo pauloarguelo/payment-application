@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.payment.app.application.dto.PaymentWebhookProcessEvent;
 import com.payment.app.application.port.out.PaymentWebhookEventPublisherPort;
-import com.payment.app.infrastructure.messaging.config.RabbitMQConfig;
+import com.payment.app.infrastructure.config.RabbitMQConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.amqp.AmqpException;
