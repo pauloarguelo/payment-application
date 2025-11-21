@@ -12,6 +12,8 @@ import com.payment.app.domain.exceptions.IdempotencyViolationException;
 import com.payment.app.domain.model.Payment;
 import com.payment.app.domain.type.PaymentStatus;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -21,6 +23,8 @@ public class CreatePaymentUseCaseImpl implements CreatePaymentUseCase {
     private final PaymentApplicationMapper mapper;
     private final CreditCardEncryptionPort creditCardEncryption;
     private final PaymentEventPublisherPort eventPublisher;
+
+    private static final Logger logger = LoggerFactory.getLogger(CreatePaymentUseCaseImpl.class);
 
     public CreatePaymentUseCaseImpl(
             PaymentRepositoryPort repository,
@@ -38,6 +42,8 @@ public class CreatePaymentUseCaseImpl implements CreatePaymentUseCase {
     @Override
     @Transactional
     public PaymentResponse createPayment(PaymentRequest paymentRequest, String idempotencyKey) {
+
+        logger.info("CreatePaymentUseCaseImpl: Creating payment with idempotency key: {}", idempotencyKey);
 
         Payment payment = mapper.toDomain(paymentRequest);
 

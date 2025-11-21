@@ -7,6 +7,8 @@ import org.hibernate.type.SqlTypes;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
+@Entity
+@Table(name = "webhook_delivery_logs")
 public class WebhookDeliveryLogEntity {
 
     @Id
@@ -18,9 +20,8 @@ public class WebhookDeliveryLogEntity {
     @Column(name = "payment_id", nullable = false, length = 36)
     private String paymentId;
 
-    @ManyToOne
-    @JoinColumn(name = "webhook_id", referencedColumnName = "id", nullable = false)
-    private WebhookEntity webhook;
+    @Column(name = "webhook_id", nullable = false, length = 36)
+    private String webhookId;
 
     @Column(name = "status", nullable = false, length = 20)
     private String status;
@@ -50,12 +51,12 @@ public class WebhookDeliveryLogEntity {
         this.paymentId = paymentId;
     }
 
-    public WebhookEntity getWebhook() {
-        return webhook;
+    public String getWebhookId() {
+        return this.webhookId;
     }
 
-    public void setWebhook(WebhookEntity webhook) {
-        this.webhook = webhook;
+    public void setWebhook(String webhook) {
+        this.webhookId = webhook;
     }
 
     public String getStatus() {

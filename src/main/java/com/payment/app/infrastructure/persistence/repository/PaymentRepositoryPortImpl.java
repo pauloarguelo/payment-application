@@ -4,6 +4,7 @@ import com.payment.app.application.port.out.PaymentRepositoryPort;
 import com.payment.app.domain.model.Payment;
 import com.payment.app.infrastructure.persistence.entity.PaymentEntity;
 import com.payment.app.infrastructure.persistence.mapper.PaymentPersistenceMapper;
+import com.payment.app.infrastructure.persistence.repository.jpa.PaymentJpaRepository;
 import org.springframework.stereotype.Repository;
 
 
