@@ -32,6 +32,11 @@ services:
       interval: 30s
       timeout: 10s
       retries: 5
+  mock-webhooks:
+    image: kennethreitz/httpbin
+    container_name: mock-webhooks
+    ports:
+      - "8083:80"
 volumes:
   mysql-data:
   rabbitmq_data:

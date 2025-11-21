@@ -1,4 +1,4 @@
-package com.payment.app.infrastructure.http;
+package com.payment.app.infrastructure.httpClient;
 
 import com.payment.app.application.dto.WebhookResponse;
 import com.payment.app.application.port.out.WebhookClientPort;

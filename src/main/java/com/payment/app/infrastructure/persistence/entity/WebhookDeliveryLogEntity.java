@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(name = "webhook_delivery_logs")
+@Table(name = "webhook_delivery_log")
 public class WebhookDeliveryLogEntity {
 
     @Id
@@ -55,7 +55,7 @@ public class WebhookDeliveryLogEntity {
         return this.webhookId;
     }
 
-    public void setWebhook(String webhook) {
+    public void setWebhookId(String webhook) {
         this.webhookId = webhook;
     }
 

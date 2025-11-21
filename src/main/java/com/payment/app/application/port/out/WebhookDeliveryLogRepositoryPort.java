@@ -9,7 +9,7 @@ public interface WebhookDeliveryLogRepositoryPort {
 
     WebhookDeliveryLog saveLogAsPending(UUID paymentId, UUID webhookId);
 
-    WebhookDeliveryLog updateStatusSuccess(UUID paymentId, UUID webhookI, Integer statusCode);
+    WebhookDeliveryLog updateStatusSuccess(UUID paymentId, UUID webhookId, Integer responseCode);
 
-    WebhookDeliveryLog updateStatusFailed(UUID paymentId, UUID webhookId, Integer statusCode);
+    WebhookDeliveryLog updateStatusFailed(UUID paymentId, UUID webhookId, Integer responseCode);
 }

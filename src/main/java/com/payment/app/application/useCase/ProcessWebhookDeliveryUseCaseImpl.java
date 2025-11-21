@@ -8,9 +8,11 @@ import com.payment.app.application.port.out.WebhookDeliveryLogRepositoryPort;
 import com.payment.app.application.port.out.WebhookRepositoryPort;
 import com.payment.app.domain.model.Webhook;
 import com.payment.app.domain.model.WebhookDeliveryLog;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Objects;
 import java.util.UUID;
@@ -34,6 +36,7 @@ public class ProcessWebhookDeliveryUseCaseImpl implements ProcessWebhookDelivery
     }
 
     @Override
+    @Transactional
     public void processDelivery(PaymentWebhookProcessEvent event) {
         logger.info("ProcessWebhookDeliveryUseCaseImpl: Processing webhook delivery for event: {}", event);
 
@@ -82,11 +85,6 @@ public class ProcessWebhookDeliveryUseCaseImpl implements ProcessWebhookDelivery
 
             throw new RuntimeException("Connection failure", e);
         }
-
-
-
-
-
 
     }
 }

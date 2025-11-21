@@ -2,38 +2,75 @@ package com.payment.app.infrastructure.persistence.repository;
 
 import com.payment.app.application.port.out.WebhookDeliveryLogRepositoryPort;
 import com.payment.app.domain.model.WebhookDeliveryLog;
+import com.payment.app.infrastructure.persistence.entity.WebhookDeliveryLogEntity;
+import com.payment.app.infrastructure.persistence.mapper.WebhookDeliveryLogMapper;
 import com.payment.app.infrastructure.persistence.repository.jpa.WebhookDeliveryLogJpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public class WebhookDeliveryLogRepositoryPortImpl implements WebhookDeliveryLogRepositoryPort {
 
     private final WebhookDeliveryLogJpaRepository jpaRepository;
+    private final WebhookDeliveryLogMapper mapper;
 
-    public WebhookDeliveryLogRepositoryPortImpl(WebhookDeliveryLogJpaRepository jpaRepository) {
+    public WebhookDeliveryLogRepositoryPortImpl(
+            WebhookDeliveryLogJpaRepository jpaRepository,
+            WebhookDeliveryLogMapper mapper
+    ) {
         this.jpaRepository = jpaRepository;
+        this.mapper = mapper;
     }
 
     @Override
     public WebhookDeliveryLog findByPaymentIdAndWebhookId(UUID paymentId, UUID webhookId) {
-        return null;
+        Optional<WebhookDeliveryLogEntity> entity = jpaRepository.findByPaymentIdAndWebhookId(
+                paymentId.toString(), webhookId.toString()
+        );
+
+        return entity.map(mapper::toDomain).orElse(null);
     }
 
     @Override
     public WebhookDeliveryLog saveLogAsPending(UUID paymentId, UUID webhookId) {
-        return null;
+        WebhookDeliveryLogEntity entity = new WebhookDeliveryLogEntity();
+        entity.setPaymentId(paymentId.toString());
+        entity.setWebhookId(webhookId.toString());
+        entity.setStatus("PENDING");
+
+        WebhookDeliveryLogEntity savedEntity = jpaRepository.saveAndFlush(entity);
+        return mapper.toDomain(savedEntity);
     }
 
     @Override
-    public WebhookDeliveryLog updateStatusSuccess(UUID paymentId, UUID webhookI, Integer statusCode) {
-        return null;
+    public WebhookDeliveryLog updateStatusSuccess(UUID paymentId, UUID webhookId, Integer responseCode) {
+
+        WebhookDeliveryLogEntity entity = jpaRepository.findByPaymentIdAndWebhookId(
+                paymentId.toString(), webhookId.toString()
+        ).orElseThrow(() -> new RuntimeException("WebhookDeliveryLog register not found in database"));
+
+        entity.setStatus("SUCCESS");
+        entity.setResponseCode(responseCode);
+
+        WebhookDeliveryLogEntity savedEntity = jpaRepository.saveAndFlush(entity);
+        return mapper.toDomain(savedEntity);
     }
 
+
     @Override
-    public WebhookDeliveryLog updateStatusFailed(UUID paymentId, UUID webhookId, Integer statusCode) {
-        return null;
+    public WebhookDeliveryLog updateStatusFailed(UUID paymentId, UUID webhookId, Integer responseCode) {
+
+        WebhookDeliveryLogEntity entity = jpaRepository.findByPaymentIdAndWebhookId(
+                paymentId.toString(), webhookId.toString()
+        ).orElseThrow(() -> new RuntimeException("WebhookDeliveryLog register not found in database"));
+
+        entity.setStatus("FAILED");
+        entity.setResponseCode(responseCode);
+
+        WebhookDeliveryLogEntity savedEntity = jpaRepository.saveAndFlush(entity);
+        return mapper.toDomain(savedEntity);
     }
 
 
