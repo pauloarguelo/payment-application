@@ -1,5 +1,5 @@
 package com.payment.app.application.port.out;
 
-public interface EncryptionStringPort {
+public interface CreditCardEncryptionPort {
     String encrypt(String plainText);
 }

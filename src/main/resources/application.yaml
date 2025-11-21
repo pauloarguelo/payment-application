@@ -1,3 +1,7 @@
+app:
+  encryption:
+    key-base64: MjExZjFiOGQyMWY2NmRmNDkzZTM3MzA1MTExZjFhOTc=
+
 spring:
   application:
     name: payment-application

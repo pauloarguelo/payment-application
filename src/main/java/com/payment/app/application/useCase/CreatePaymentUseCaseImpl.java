@@ -4,7 +4,7 @@ import com.payment.app.application.dto.PaymentRequest;
 import com.payment.app.application.dto.PaymentResponse;
 import com.payment.app.application.mapper.PaymentApplicationMapper;
 import com.payment.app.application.port.in.CreatePaymentUseCase;
-import com.payment.app.application.port.out.EncryptionStringPort;
+import com.payment.app.application.port.out.CreditCardEncryptionPort;
 import com.payment.app.application.port.out.PaymentRepositoryPort;
 import com.payment.app.domain.model.Payment;
 import jakarta.transaction.Transactional;
@@ -15,16 +15,16 @@ public class CreatePaymentUseCaseImpl implements CreatePaymentUseCase {
 
     private final PaymentRepositoryPort repository;
     private final PaymentApplicationMapper mapper;
-    private final EncryptionStringPort encryptionString;
+    private final CreditCardEncryptionPort creditCardEncryption;
 
     public CreatePaymentUseCaseImpl(
             PaymentRepositoryPort repository,
             PaymentApplicationMapper mapper,
-            EncryptionStringPort encryptionString
+            CreditCardEncryptionPort creditCardEncryption
     ) {
         this.mapper = mapper;
         this.repository = repository;
-        this.encryptionString = encryptionString;
+        this.creditCardEncryption = creditCardEncryption;
     }
 
 
@@ -38,7 +38,7 @@ public class CreatePaymentUseCaseImpl implements CreatePaymentUseCase {
                 payment.toBuilder()
                         .status("CREATED")
                         .idempotencyKey(idempotencyKey)
-                        .encryptedCardNumber(encryptCardNumber(payment.encryptedCardNumber()))
+                        .encryptedCardNumber(creditCardEncryption.encrypt(paymentRequest.cardNumber()))
                         .build()
         );
 
@@ -46,7 +46,5 @@ public class CreatePaymentUseCaseImpl implements CreatePaymentUseCase {
 
     }
 
-    private String encryptCardNumber(String cardNumber) {
-       return encryptionString.encrypt(cardNumber);
-    }
+
 }

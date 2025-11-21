@@ -8,12 +8,12 @@ import org.springframework.stereotype.Repository;
 
 
 @Repository
-public class PaymentRepositoryImpl implements PaymentRepositoryPort {
+public class PaymentRepositoryPortImpl implements PaymentRepositoryPort {
 
     private final PaymentJpaRepository jpaRepository;
     private final PaymentPersistenceMapper mapper;
 
-    public PaymentRepositoryImpl(PaymentJpaRepository jpaRepository, PaymentPersistenceMapper mapper) {
+    public PaymentRepositoryPortImpl(PaymentJpaRepository jpaRepository, PaymentPersistenceMapper mapper) {
         this.jpaRepository = jpaRepository;
         this.mapper = mapper;
     }
