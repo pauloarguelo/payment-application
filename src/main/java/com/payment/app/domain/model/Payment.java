@@ -1,5 +1,7 @@
 package com.payment.app.domain.model;
 
+import com.payment.app.domain.type.PaymentStatus;
+
 import java.time.LocalDateTime;
 import java.util.UUID;
 
@@ -10,7 +12,7 @@ public record Payment(
         String zipCode,
         String encryptedCardNumber,
         String idempotencyKey,
-        String status,
+        PaymentStatus status,
         LocalDateTime createdAt
 ) {
     public static Builder builder() {
@@ -28,7 +30,7 @@ public record Payment(
         private String zipCode;
         private String encryptedCardNumber;
         private String idempotencyKey;
-        private String status;
+        private PaymentStatus status;
         private LocalDateTime createdAt;
 
         public Builder() {
@@ -75,7 +77,7 @@ public record Payment(
             return this;
         }
 
-        public Builder status(String status) {
+        public Builder status(PaymentStatus status) {
             this.status = status;
             return this;
         }

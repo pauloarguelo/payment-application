@@ -1,5 +1,5 @@
 CREATE TABLE webhooks (
-    id VARCHAR(36) NOT NULL,
+    id CHAR(36) NOT NULL DEFAULT (UUID()),
     endpoint_url VARCHAR(255) NOT NULL,
     secret_key VARCHAR(255),
     event_type VARCHAR(50) NOT NULL DEFAULT 'PAYMENT_CREATED',
