@@ -36,4 +36,20 @@ public class PaymentRepositoryPortImpl implements PaymentRepositoryPort {
         );
 
     }
+
+    @Override
+    public Payment findByIdempotencyKey(String idempotencyKey) {
+        return jpaRepository.findByIdempotencyKey(idempotencyKey)
+                .map(entity -> new Payment(
+                        entity.getId(),
+                        entity.getFirstName(),
+                        entity.getLastName(),
+                        entity.getZipCode(),
+                        entity.getEncryptedCardNumber(),
+                        entity.getIdempotencyKey(),
+                        entity.getStatus(),
+                        entity.getCreatedAt()
+                ))
+                .orElse(null);
+    }
 }

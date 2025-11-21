@@ -4,4 +4,5 @@ import com.payment.app.domain.model.Payment;
 
 public interface PaymentRepositoryPort {
     Payment save(Payment payment);
+    Payment findByIdempotencyKey(String idempotencyKey);
 }

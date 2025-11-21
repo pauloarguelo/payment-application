@@ -6,6 +6,7 @@ import com.payment.app.application.mapper.PaymentApplicationMapper;
 import com.payment.app.application.port.in.CreatePaymentUseCase;
 import com.payment.app.application.port.out.CreditCardEncryptionPort;
 import com.payment.app.application.port.out.PaymentRepositoryPort;
+import com.payment.app.domain.exceptions.IdempotencyViolationException;
 import com.payment.app.domain.model.Payment;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
@@ -33,6 +34,12 @@ public class CreatePaymentUseCaseImpl implements CreatePaymentUseCase {
     public PaymentResponse createPayment(PaymentRequest paymentRequest, String idempotencyKey) {
 
         Payment payment = mapper.toDomain(paymentRequest);
+
+        Payment existingPayment = repository.findByIdempotencyKey(idempotencyKey);
+
+        if (existingPayment != null) {
+            throw new IdempotencyViolationException("Payment with the same idempotency key already exists.");
+        }
 
         Payment response = repository.save(
                 payment.toBuilder()
