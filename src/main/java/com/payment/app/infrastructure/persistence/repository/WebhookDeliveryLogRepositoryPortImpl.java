@@ -37,6 +37,7 @@ public class WebhookDeliveryLogRepositoryPortImpl implements WebhookDeliveryLogR
     public WebhookDeliveryLog saveLogAsPending(UUID paymentId, UUID webhookId) {
         WebhookDeliveryLogEntity entity = new WebhookDeliveryLogEntity();
         entity.setPaymentId(paymentId.toString());
+        entity.setAttemptCount(0);
         entity.setWebhookId(webhookId.toString());
         entity.setStatus("PENDING");
 
@@ -68,6 +69,20 @@ public class WebhookDeliveryLogRepositoryPortImpl implements WebhookDeliveryLogR
 
         entity.setStatus("FAILED");
         entity.setResponseCode(responseCode);
+        entity.setLastAttemptAt(java.time.LocalDateTime.now());
+
+        WebhookDeliveryLogEntity savedEntity = jpaRepository.saveAndFlush(entity);
+        return mapper.toDomain(savedEntity);
+    }
+
+    @Override
+    public WebhookDeliveryLog incrementAttemptCount(UUID paymentId, UUID webhookId) {
+        WebhookDeliveryLogEntity entity = jpaRepository.findByPaymentIdAndWebhookId(
+                paymentId.toString(), webhookId.toString()
+        ).orElseThrow(() -> new RuntimeException("WebhookDeliveryLog register not found in database"));
+
+        entity.setAttemptCount(entity.getAttemptCount() + 1);
+        entity.setLastAttemptAt(java.time.LocalDateTime.now());
 
         WebhookDeliveryLogEntity savedEntity = jpaRepository.saveAndFlush(entity);
         return mapper.toDomain(savedEntity);

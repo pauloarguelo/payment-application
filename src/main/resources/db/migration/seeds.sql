@@ -1,5 +1,4 @@
--- 1. CENÁRIO DE SUCESSO (Happy Path)
--- O endpoint /post retorna 200 OK e o corpo que você enviou.
+--  /post HTTP 200
 INSERT INTO webhooks (id, endpoint_url, event_type, status)
 VALUES (
     '11111111-1111-1111-1111-111111111111',
@@ -8,9 +7,7 @@ VALUES (
     'ACTIVE'
 );
 
--- 2. CENÁRIO DE RETRY (Falha Transiente)
--- O endpoint /status/500 sempre retorna HTTP 500.
--- Isso deve disparar sua Exception e ativar o Spring Retry.
+--  /status/500 HTTP 500
 INSERT INTO webhooks (id, endpoint_url, event_type, status)
 VALUES (
     '22222222-2222-2222-2222-222222222222',
@@ -19,13 +16,20 @@ VALUES (
     'ACTIVE'
 );
 
--- 3. CENÁRIO DE TIMEOUT (Opcional)
--- O endpoint /delay/10 demora 10 segundos para responder.
--- Se seu RestClient estiver com timeout de 5s, vai dar erro e retentar.
+--  /delay/10 TIMEOUT 10 SECONDS 200
 INSERT INTO webhooks (id, endpoint_url, event_type, status)
 VALUES (
     '33333333-3333-3333-3333-333333333333',
     'http://localhost:8083/delay/10',
+    'PAYMENT_CREATED',
+    'ACTIVE'
+);
+
+--  /status/400 HTTP 400
+INSERT INTO webhooks (id, endpoint_url, event_type, status)
+VALUES (
+    '44444444-4444-4444-4444-444444444444',
+    'http://localhost:8083/status/400',
     'PAYMENT_CREATED',
     'ACTIVE'
 );

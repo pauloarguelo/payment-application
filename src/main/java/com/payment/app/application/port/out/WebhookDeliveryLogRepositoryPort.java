@@ -12,4 +12,6 @@ public interface WebhookDeliveryLogRepositoryPort {
     WebhookDeliveryLog updateStatusSuccess(UUID paymentId, UUID webhookId, Integer responseCode);
 
     WebhookDeliveryLog updateStatusFailed(UUID paymentId, UUID webhookId, Integer responseCode);
+
+    WebhookDeliveryLog incrementAttemptCount(UUID paymentId, UUID webhookId);
 }

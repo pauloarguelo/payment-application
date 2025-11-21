@@ -62,7 +62,11 @@ public class ProcessWebhookDeliveryUseCaseImpl implements ProcessWebhookDelivery
 
         try {
 
-            this.webhookDeliveryLogRepository.saveLogAsPending(paymentId, webhookId);
+            if (log == null) {
+                this.webhookDeliveryLogRepository.saveLogAsPending(paymentId, webhookId);
+            }
+
+            this.webhookDeliveryLogRepository.incrementAttemptCount(paymentId, webhookId);
 
             String payloadJson = "{\"paymentId\": \"" + paymentId + "\", \"event\": \"PAYMENT_CREATED\"}";
 
