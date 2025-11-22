@@ -1,0 +1,56 @@
+@startuml Payment_Creation_Sequence
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Sequence.puml
+
+title Payment Creation & Webhook Delivery Flow
+
+Person(customer, "Customer")
+System(api, "Payment API")
+System(payment_uc, "Create Payment\nUse Case")
+SystemDb(database, "Database")
+SystemQueue(rabbitmq, "RabbitMQ")
+System(webhook_uc, "Webhook Delivery\nUse Case")
+System(delivery_uc, "Process Delivery\nUse Case")
+System_Ext(webhook, "Webhook Endpoint")
+
+Rel(customer, api, "POST /api/payments", "HTTPS")
+Rel(api, payment_uc, "createPayment()")
+
+group Payment Creation
+    Rel(payment_uc, database, "Save payment", "CREATED")
+    Rel(payment_uc, rabbitmq, "Publish PaymentCreatedEvent", "webhooks.main")
+end
+
+Rel(api, customer, "201 Created", "paymentId")
+
+group Async Webhook Processing
+    Rel(rabbitmq, webhook_uc, "Consume PaymentCreatedEvent")
+    Rel(webhook_uc, database, "Find active webhooks")
+
+    loop For each webhook
+        Rel(webhook_uc, rabbitmq, "Publish DeliveryEvent", "webhooks.delivery")
+    end
+end
+
+group Webhook Delivery
+    Rel(rabbitmq, delivery_uc, "Consume DeliveryEvent")
+    Rel(delivery_uc, database, "Create/Update delivery log")
+    Rel(delivery_uc, database, "Increment attempt count")
+
+    alt Success (2xx)
+        Rel(delivery_uc, webhook, "POST event", "HTTPS")
+        Rel(webhook, delivery_uc, "200 OK")
+        Rel(delivery_uc, database, "Update status: SUCCESS")
+    else Client Error (4xx)
+        Rel(delivery_uc, webhook, "POST event", "HTTPS")
+        Rel(webhook, delivery_uc, "400 Bad Request")
+        Rel(delivery_uc, database, "Update status: FAILED")
+    else Server Error (5xx)
+        Rel(delivery_uc, webhook, "POST event", "HTTPS")
+        Rel(webhook, delivery_uc, "500 Error")
+        Rel(delivery_uc, rabbitmq, "Throw for retry")
+        note right: Retry with exponential backoff\nMax 5 attempts\nThen send to DLQ
+    end
+end
+
+@enduml
+
