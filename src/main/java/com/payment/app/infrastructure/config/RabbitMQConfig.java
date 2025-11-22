@@ -27,7 +27,11 @@ public class RabbitMQConfig {
     public static final String DELIVERY_QUEUE_NAME = "webhooks.delivery";
     public static final String DELIVERY_EXCHANGE_NAME = "webhooks.delivery.exchange";
 
+    private final RabbitMQProperties properties;
 
+    public RabbitMQConfig(RabbitMQProperties properties) {
+        this.properties = properties;
+    }
     @Bean
     public DirectExchange dlqExchange() {
         return new DirectExchange(DLQ_EXCHANGE_NAME);
@@ -89,10 +93,12 @@ public class RabbitMQConfig {
         SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
         factory.setConnectionFactory(connectionFactory);
 
-        factory.setAdviceChain(retryInterceptor());
+        if (properties.getRetry().isEnabled()) {
+            factory.setAdviceChain(retryInterceptor());
+        }
 
-        factory.setConcurrentConsumers(3);
-        factory.setMaxConcurrentConsumers(10);
+        factory.setConcurrentConsumers(properties.getConcurrency());
+        factory.setMaxConcurrentConsumers(properties.getMaxConcurrency());
 
         return factory;
     }
@@ -100,9 +106,15 @@ public class RabbitMQConfig {
 
     @Bean
     public RetryOperationsInterceptor retryInterceptor() {
+        RabbitMQProperties.RetryConfig retryConfig = properties.getRetry();
+
         return RetryInterceptorBuilder.stateless()
-                .maxAttempts(5)
-                .backOffOptions(1000, 2.0, 30000)
+                .maxAttempts(retryConfig.getMaxAttempts())
+                .backOffOptions(
+                        retryConfig.getInitialInterval(),
+                        retryConfig.getMultiplier(),
+                        retryConfig.getMaxInterval()
+                )
                 .recoverer(new RejectAndDontRequeueRecoverer())
                 .build();
     }

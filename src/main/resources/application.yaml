@@ -28,6 +28,16 @@ spring:
     port: 5672
     username: guest
     password: guest
+    listener:
+      simple:
+        retry:
+          enabled: true
+          max-attempts: 5
+          initial-interval: 1000
+          multiplier: 2.0
+          max-interval: 30000
+        concurrency: 3
+        max-concurrency: 10
 
   flyway:
     enabled: true
