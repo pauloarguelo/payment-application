@@ -1,0 +1,333 @@
+openapi: 3.1.0
+info:
+  title: OpenAPI definition
+  version: v0
+servers:
+- url: http://localhost:8080
+  description: Generated server url
+tags:
+- name: Payments
+  description: API for payment processing
+- name: Webhooks
+  description: API for webhook management
+paths:
+  /api/webhooks:
+    post:
+      tags:
+      - Webhooks
+      summary: Create new webhook
+      description: Register a new webhook to receive payment event notifications
+      operationId: createWebhook
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WebhookRequest"
+        required: true
+      responses:
+        "409":
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: INTERNAL_SERVER_ERROR
+                description: An unexpected error occurred.
+                statusCode: 500
+                timestamp: 2025-11-21T10:30:00
+        "201":
+          description: Webhook created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/WebhookResponse"
+              example:
+                id: 123e4567-e89b-12d3-a456-426614174000
+                endpointUrl: https://api.example.com/webhooks/payment
+                eventType: PAYMENT_CREATED
+                status: ACTIVE
+                createdAt: 2025-11-21T10:30:00
+                updatedAt: 2025-11-21T10:30:00
+        "400":
+          description: Invalid request - incorrect data
+          content:
+            application/json:
+              example:
+                error: INVALID_ENUM_VALUE
+                description: "Invalid event type. Allowed values are: PAYMENT_CREATED,\
+                  \ PAYMENT_FAILED, PAYMENT_REFUNDED."
+                statusCode: 400
+                timestamp: 2025-11-21T10:30:00
+  /api/v1/payments:
+    post:
+      tags:
+      - Payments
+      summary: Create new payment
+      description: Process a new payment request with idempotency support
+      operationId: createPayment
+      parameters:
+      - name: Idempotency-Key
+        in: header
+        description: Unique key to ensure idempotency - prevents duplicate payments
+        required: true
+        schema:
+          type: string
+        example: payment_123456789
+      requestBody:
+        description: Payment data to be processed
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PaymentRequest"
+            examples:
+              Valid payment:
+                summary: Complete payment with all required fields
+                description: Valid payment
+                value:
+                  firstName: John
+                  lastName: Doe
+                  zipCode: "2000"
+                  cardNumber: "1234567812345678"
+              Another customer:
+                summary: Payment for different customer
+                description: Another customer
+                value:
+                  firstName: Jane
+                  lastName: Smith
+                  zipCode: "3000"
+                  cardNumber: "9876543210987654"
+        required: true
+      responses:
+        "409":
+          description: Idempotency conflict - payment already processed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: IDEMPOTENCY_ERROR
+                description: A payment with this idempotency key has already been
+                  processed
+                statusCode: 409
+                timestamp: 2025-11-21T10:30:00
+        "500":
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: INTERNAL_SERVER_ERROR
+                description: An unexpected error occurred.
+                statusCode: 500
+                timestamp: 2025-11-21T10:30:00
+        "201":
+          description: Payment created successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentResponse"
+              example:
+                paymentId: 123e4567-e89b-12d3-a456-426614174000
+                firstName: John
+                lastName: Doe
+                status: COMPLETED
+                createdAt: 2025-11-21T10:30:00
+        "400":
+          description: Invalid request - validation error
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationErrorResponse"
+              example:
+                error: VALIDATION_ERROR
+                description: One or more fields are invalid
+                statusCode: 400
+                fieldErrors:
+                - field: cardNumber
+                  message: Card number must be exactly 16 digits
+                - field: firstName
+                  message: First name is required
+                timestamp: 2025-11-21T10:30:00
+  /health:
+    get:
+      tags:
+      - Health
+      summary: Health Check Endpoint
+      description: Returns a simple 'Hello World' message to indicate the service
+        is running.
+      operationId: checkHealth
+      responses:
+        "409":
+          description: Conflict
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "500":
+          description: Internal Server Error
+          content:
+            '*/*':
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "200":
+          description: OK
+          content:
+            '*/*':
+              schema:
+                type: string
+components:
+  schemas:
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        description:
+          type: string
+        statusCode:
+          type: integer
+          format: int32
+        timestamp:
+          type: string
+          format: date-time
+    FieldError:
+      type: object
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+    ValidationErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        description:
+          type: string
+        statusCode:
+          type: integer
+          format: int32
+        fieldErrors:
+          type: array
+          items:
+            $ref: "#/components/schemas/FieldError"
+        timestamp:
+          type: string
+          format: date-time
+    WebhookRequest:
+      type: object
+      description: Request to create a new webhook
+      properties:
+        endpointUrl:
+          type: string
+          description: Endpoint URL that will receive webhook notifications
+          example: https://api.example.com/webhooks/payment
+          minLength: 1
+          pattern: ^https?://.*
+        eventType:
+          type: string
+          description: Event type that the webhook should listen to
+          enum:
+          - PAYMENT_CREATED
+          - PAYMENT_FAILED
+          - PAYMENT_REFUNDED
+          example: PAYMENT_CREATED
+      required:
+      - endpointUrl
+      - eventType
+    WebhookResponse:
+      type: object
+      description: Response with created webhook data
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Unique webhook ID
+          example: 123e4567-e89b-12d3-a456-426614174000
+        endpointUrl:
+          type: string
+          description: Endpoint URL
+          example: https://api.example.com/webhooks/payment
+        eventType:
+          type: string
+          description: Event type
+          enum:
+          - PAYMENT_CREATED
+          - PAYMENT_FAILED
+          - PAYMENT_REFUNDED
+          example: PAYMENT_CREATED
+        status:
+          type: string
+          description: Webhook status
+          enum:
+          - ACTIVE
+          - INACTIVE
+          example: ACTIVE
+        createdAt:
+          type: string
+          format: date-time
+          description: Creation date
+          example: 2025-11-21T10:30:00
+        updatedAt:
+          type: string
+          format: date-time
+          description: Last update date
+          example: 2025-11-21T10:30:00
+    PaymentRequest:
+      type: object
+      properties:
+        firstName:
+          type: string
+          description: Customer's first name
+          example: John
+          minLength: 1
+        lastName:
+          type: string
+          description: Customer's last name
+          example: Doe
+          minLength: 1
+        zipCode:
+          type: string
+          description: Billing Zip Code
+          example: 2000
+          minLength: 1
+        cardNumber:
+          type: string
+          description: Credit Card Number (16 digits)
+          example: 1234567812345678
+          maxLength: 16
+          minLength: 16
+          pattern: \d+
+      required:
+      - cardNumber
+      - firstName
+      - lastName
+      - zipCode
+    PaymentResponse:
+      type: object
+      properties:
+        paymentId:
+          type: string
+          format: uuid
+        firstName:
+          type: string
+        lastName:
+          type: string
+        status:
+          type: string
+          enum:
+          - CREATED
+          - COMPLETED
+          - FAILED
+          - REFUNDED
+        createdAt:
+          type: string
+          format: date-time
