@@ -30,15 +30,13 @@ class PaymentWebhookDeliveryEventListenerTest {
     @InjectMocks
     private PaymentWebhookDeliveryEventListener listener;
 
-    private UUID paymentId;
-    private UUID webhookId;
     private String eventPayload;
     private PaymentWebhookProcessEvent event;
 
     @BeforeEach
     void setUp() {
-        paymentId = UUID.randomUUID();
-        webhookId = UUID.randomUUID();
+        UUID paymentId = UUID.randomUUID();
+        UUID webhookId = UUID.randomUUID();
         eventPayload = "{\"paymentId\":\"" + paymentId + "\",\"webhookId\":\"" + webhookId + "\"}";
         event = new PaymentWebhookProcessEvent(paymentId, webhookId);
     }
