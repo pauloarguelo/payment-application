@@ -1,7 +1,0 @@
-# Generated diagram images
-images/
-*.png
-
-# Keep the .puml source files
-!*.puml
-
