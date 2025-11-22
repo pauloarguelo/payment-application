@@ -4,6 +4,7 @@ import com.payment.app.domain.exceptions.IdempotencyViolationException;
 import com.payment.app.infrastructure.controllers.dto.ErrorResponse;
 import com.payment.app.infrastructure.controllers.dto.ValidationErrorResponse;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -33,6 +34,26 @@ public class GlobalExceptionHandler {
                 fieldErrors
         );
     }
+
+//    @ExceptionHandler(HttpMessageNotReadableException.class)
+//    @ResponseStatus(HttpStatus.BAD_REQUEST)
+//    public ErrorResponse handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+//        String message = ex.getMessage();
+//
+//        if (message != null && message.contains("PaymentEventType")) {
+//            return new ErrorResponse(
+//                    "INVALID_ENUM_VALUE",
+//                    "Invalid event type. Allowed values are: PAYMENT_CREATED, PAYMENT_FAILED, PAYMENT_REFUNDED",
+//                    HttpStatus.BAD_REQUEST.value()
+//            );
+//        }
+//
+//        return new ErrorResponse(
+//                "MALFORMED_JSON",
+//                "Invalid JSON format or data type mismatch",
+//                HttpStatus.BAD_REQUEST.value()
+//        );
+//    }
 
     @ExceptionHandler(RuntimeException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)

@@ -12,6 +12,7 @@ import com.payment.app.application.port.out.WebhookRepositoryPort;
 import com.payment.app.domain.model.Webhook;
 import com.payment.app.domain.model.WebhookDeliveryLog;
 
+import com.payment.app.domain.type.WebhookDeliveryLogStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -84,7 +85,7 @@ public class ProcessWebhookDeliveryUseCaseImpl implements ProcessWebhookDelivery
     }
 
     private boolean isAlreadyDeliveredSuccessfully(WebhookDeliveryLog deliveryLog) {
-        return deliveryLog != null && "SUCCESS".equals(deliveryLog.status());
+        return deliveryLog != null && WebhookDeliveryLogStatus.SUCCESS == deliveryLog.status();
     }
 
     private void ensureDeliveryLogExists(WebhookDeliveryLog deliveryLog, UUID paymentId, UUID webhookId) {
@@ -101,7 +102,7 @@ public class ProcessWebhookDeliveryUseCaseImpl implements ProcessWebhookDelivery
 
     private String buildPayloadJson(UUID paymentId) {
         try {
-            WebhookPayloadDto payload = new WebhookPayloadDto(paymentId, "PAYMENT_COMPLETED");
+            WebhookPayloadDto payload = new WebhookPayloadDto(paymentId, "EVENT DESCRIPTION");
             return objectMapper.writeValueAsString(payload);
         } catch (JsonProcessingException e) {
             logger.error("ProcessWebhookDeliveryUseCaseImpl: Failed to serialize webhook payload: {}", e.getMessage());

@@ -53,13 +53,9 @@ public class CreatePaymentUseCaseImpl implements CreatePaymentUseCase {
             throw new IdempotencyViolationException("Payment with the same idempotency key already exists.");
         }
 
-        Payment response = repository.save(
-                payment.toBuilder()
-                        .status(PaymentStatus.CREATED)
-                        .idempotencyKey(idempotencyKey)
-                        .encryptedCardNumber(creditCardEncryption.encrypt(paymentRequest.cardNumber()))
-                        .build()
-        );
+        Payment response =  repository.save(payment.toDomain(idempotencyKey, PaymentStatus.CREATED,
+                creditCardEncryption.encrypt(paymentRequest.cardNumber())
+        ));
 
         CreatePaymentEvent paymentCreateEvent = new CreatePaymentEvent(
                 response.paymentId(),

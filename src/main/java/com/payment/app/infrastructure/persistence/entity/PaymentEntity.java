@@ -3,6 +3,8 @@ package com.payment.app.infrastructure.persistence.entity;
 import com.payment.app.domain.type.PaymentStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.EnumType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -38,6 +40,7 @@ public class PaymentEntity {
     @Column(name = "idempotency_key", nullable = false, unique = true, length = 36)
     private String idempotencyKey;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
     private PaymentStatus status;
 

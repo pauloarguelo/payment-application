@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/webhooks")
-@Tag(name = "Webhooks", description = "API para gerenciamento de webhooks")
+@Tag(name = "Webhooks", description = "API for webhook management")
 public class WebhookController {
 
     private static final Logger logger = LoggerFactory.getLogger(WebhookController.class);
@@ -31,13 +31,13 @@ public class WebhookController {
 
     @PostMapping
     @Operation(
-            summary = "Criar novo webhook",
-            description = "Registra um novo webhook para receber notificações de eventos de pagamento"
+            summary = "Create new webhook",
+            description = "Register a new webhook to receive payment event notifications"
     )
     @ApiResponses(value = {
             @ApiResponse(
                     responseCode = "201",
-                    description = "Webhook criado com sucesso",
+                    description = "Webhook created successfully",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = WebhookResponse.class),
@@ -57,14 +57,16 @@ public class WebhookController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "Requisição inválida - dados incorretos",
+                    description = "Invalid request - incorrect data",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(
                                     value = """
                                     {
-                                        "error": "Bad Request",
-                                        "message": "Invalid event type: INVALID_TYPE. Valid values are: PAYMENT_CREATED, PAYMENT_FAILED, PAYMENT_REFUNDED"
+                                        "error": "INVALID_ENUM_VALUE",
+                                        "description": "Invalid event type. Allowed values are: PAYMENT_CREATED, PAYMENT_FAILED, PAYMENT_REFUNDED.",
+                                        "statusCode": 400,
+                                        "timestamp": "2025-11-21T10:30:00"
                                     }
                                     """
                             )
@@ -72,14 +74,17 @@ public class WebhookController {
             ),
             @ApiResponse(
                     responseCode = "500",
-                    description = "Erro interno do servidor",
+                    description = "Internal server error",
                     content = @Content(
                             mediaType = "application/json",
+                            schema = @Schema(implementation = com.payment.app.infrastructure.controllers.dto.ErrorResponse.class),
                             examples = @ExampleObject(
                                     value = """
                                     {
-                                        "error": "Internal Server Error",
-                                        "message": "Erro ao criar webhook"
+                                        "error": "INTERNAL_SERVER_ERROR",
+                                        "description": "An unexpected error occurred.",
+                                        "statusCode": 500,
+                                        "timestamp": "2025-11-21T10:30:00"
                                     }
                                     """
                             )
@@ -87,28 +92,7 @@ public class WebhookController {
             )
     })
     public ResponseEntity<WebhookResponse> createWebhook(
-            @Valid @RequestBody
-            @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "Dados do webhook a ser criado",
-                    required = true,
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = WebhookRequest.class),
-                            examples = {
-                                    @ExampleObject(
-                                            name = "Webhook básico",
-                                            summary = "Webhook sem secret key",
-                                            value = """
-                                            {
-                                                "endpointUrl": "https://api.example.com/webhooks/payment",
-                                                "eventType": "PAYMENT_CREATED"
-                                            }
-                                            """
-                                    ),
-                            }
-                    )
-            )
-            WebhookRequest request
+            @Valid @RequestBody WebhookRequest request
     ) {
         logger.info("Received request to create webhook - EndpointUrl: {}", request.endpointUrl());
 
